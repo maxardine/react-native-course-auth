@@ -1,27 +1,42 @@
 import React, { Component } from 'react';
 import { View, Text } from 'react-native';
 import firebase from 'firebase';
-import { Card, CardSection, Input, Button } from './common';
+import { Card, CardSection, Input, Button, Spinner } from './common';
 
 
 class LoginForm extends Component {
 
-    state = { email: '', password: '', error: '' };
+    state = { email: '', password: '', error: '', loading: false };
 
 
     onButtonPress() {
         const { email, password } = this.state;
 
+        this.setState({ loading: true, error: '' });
+
         firebase.auth().signInWithEmailAndPassword(email, password)
-        .then(() => { console.log('login successful'); })
+        .then(() => {
+            this.setState({ loading: false });
+            console.log('login successful'); 
+        })
         .catch(() => {
             firebase.auth().createUserWithEmailAndPassword(email, password)
-            .then(() => { console.log('user created'); })
-            .catch((error) => { this.setState({ error: error.message }); });
+            .then(() => {
+                this.setState({ loading: false });
+                console.log('user created'); 
+            })
+            .catch((error) => {
+                this.setState({ loading: false });
+                this.setState({ error: error.message }); 
+            });
         });
     }
 
     renderButton() {
+        if (this.state.loading) {
+            return (<Spinner />);
+        }
+
         return (
             <Button onPress={this.onButtonPress.bind(this)}>Login</Button>
         );
@@ -63,7 +78,8 @@ const styles = {
       fontSize: 16,
       alignSelf: 'center',
       color: 'red',
-      padding: 10
+      padding: 5,
+      margin: 5
     }
   };
 
